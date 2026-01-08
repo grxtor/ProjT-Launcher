@@ -46,6 +46,8 @@
 #include <QHash>
 #include <vector>
 
+#include "tasks/MultipleOptionsTask.h"
+
 bool ModrinthCreationTask::abort()
 {
     if (!canAbort())
@@ -148,8 +150,8 @@ bool ModrinthCreationTask::updateInstance()
         }
 
         // We will remove all the previous overrides, to prevent duplicate files!
-    // TODO: Şu anda 'overrides' güncellemede her şeyi ezmekte. Değişmeyen dosyalar korunmalı.
-    // FIXME: Disabled mod'lar için özel bir işlem yapılmalı.
+        // TODO: Şu anda 'overrides' güncellemede her şeyi ezmekte. Değişmeyen dosyalar korunmalı.
+        // FIXME: Disabled mod'lar için özel bir işlem yapılmalı.
         auto old_overrides = Override::readOverrides("overrides", old_index_folder);
         for (const auto& entry : old_overrides) {
             if (entry.isEmpty())
@@ -289,22 +291,16 @@ bool ModrinthCreationTask::createInstance()
             setError(tr("The file '%1' is missing a download link. This is invalid in the pack format.").arg(fileName));
             return false;
         }
-        qDebug() << "Will try to download" << file.downloads.front() << "to" << file_path;
-        auto dl = Net::ApiDownload::makeFile(file.downloads.dequeue(), file_path);
-        dl->addValidator(new Net::ChecksumValidator(file.hashAlgorithm, file.hash));
-        downloadMods->addNetAction(dl);
-        if (!file.downloads.empty()) {
-            // FIXME: Bu işlem ConcurrentTask'a taşınmalı, şu anda senkron çalışıyor.
-            // MultipleOptionsTask's , once those exist :)
-            auto param = dl.toWeakRef();
-            connect(dl.get(), &Task::failed, [&file, file_path, param, downloadMods] {
-                auto ndl = Net::ApiDownload::makeFile(file.downloads.dequeue(), file_path);
-                ndl->addValidator(new Net::ChecksumValidator(file.hashAlgorithm, file.hash));
-                downloadMods->addNetAction(ndl);
-                if (auto shared = param.lock())
-                    shared->succeeded();
-            });
+
+        auto fileTask = makeShared<MultipleOptionsTask>(tr("Download %1").arg(fileName));
+
+        for (const auto& url : file.downloads) {
+            auto dl = Net::ApiDownload::makeFile(url, file_path);
+            dl->addValidator(new Net::ChecksumValidator(file.hashAlgorithm, file.hash));
+            fileTask->addTask(dl);
         }
+
+        downloadMods->addTask(fileTask);
     }
 
     bool ended_well = false;

@@ -968,17 +968,19 @@ class InstanceStaging : public Task {
 
     virtual ~InstanceStaging() {}
 
-    // FIXME/TODO: add ability to abort during instance commit retries
+    // Abort can now stop both the child task and any pending retries
     bool abort() override
     {
-        if (!canAbort())
-            return false;
+        m_aborted = true;
+        m_backoffTimer.stop();
 
-        m_child->abort();
+        if (m_child && m_child->canAbort()) {
+            m_child->abort();
+        }
 
         return Task::abort();
     }
-    bool canAbort() const override { return (m_child && m_child->canAbort()); }
+    bool canAbort() const override { return true; }  // Always allow abort, even during retries
 
    protected:
     virtual void executeTask() override
@@ -1031,6 +1033,7 @@ class InstanceStaging : public Task {
     QString m_stagingPath;
     unique_qobject_ptr<InstanceTask> m_child;
     QTimer m_backoffTimer;
+    bool m_aborted = false;  // Flag to track abort during backoff retries
 };
 
 Task* InstanceList::wrapInstanceTask(InstanceTask* task)

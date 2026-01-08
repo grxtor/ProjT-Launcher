@@ -56,8 +56,10 @@
  *
  * ======================================================================== */
 #include "CustomTheme.h"
-#include <FileSystem.h>
-#include <Json.h>
+#include <QFileInfo>
+#include <QString>
+#include "FileSystem.h"
+#include "Json.h"
 #include "ThemeManager.h"
 
 const char* themeFile = "theme.json";
@@ -104,8 +106,10 @@ CustomTheme::CustomTheme(ITheme* baseTheme, QFileInfo& fileInfo, bool isManifest
         QFileInfo info(qssFilePath);
         if (info.isFile()) {
             try {
-                // TODO: validate qss?
                 m_styleSheet = QString::fromUtf8(FS::read(qssFilePath));
+                if (m_styleSheet.isEmpty()) {
+                    themeWarningLog() << "Theme QSS file is empty:" << qssFilePath;
+                }
             } catch (const Exception& e) {
                 themeWarningLog() << "Couldn't load qss:" << e.cause() << "from" << qssFilePath;
                 return;
@@ -130,8 +134,10 @@ CustomTheme::CustomTheme(ITheme* baseTheme, QFileInfo& fileInfo, bool isManifest
 
         m_palette = baseTheme->colorScheme();
         try {
-            // TODO: validate qss?
             m_styleSheet = QString::fromUtf8(FS::read(path));
+            if (m_styleSheet.isEmpty()) {
+                themeWarningLog() << "Theme QSS file is empty:" << path;
+            }
         } catch (const Exception& e) {
             themeWarningLog() << "Couldn't load qss:" << e.cause() << "from" << path;
             m_styleSheet = baseTheme->appStyleSheet();

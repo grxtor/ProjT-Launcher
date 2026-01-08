@@ -63,6 +63,7 @@
 #include <QDir>
 #include <QLibraryInfo>
 #include <QLocale>
+#include <QMutex>
 #include <QTranslator>
 #include <locale>
 
@@ -484,11 +485,10 @@ bool TranslationsModel::selectLanguage(QString key)
         d->m_qt_translator.reset();
     }
 
-    /*
-     * FIXME: potential source of crashes:
-     * In a multithreaded application, the default locale should be set at application startup, before any non-GUI threads are created.
-     * This function is not reentrant.
-     */
+    // Protect locale setting with a mutex to prevent thread-safety issues
+    // QLocale::setDefault is not reentrant, so we serialize access
+    static QMutex localeMutex;
+    QMutexLocker locker(&localeMutex);
     QLocale::setDefault(
         QLocale(APPLICATION->settings()->get("UseSystemLocale").toBool() ? QString::fromStdString(std::locale().name()) : langCode));
 

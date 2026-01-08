@@ -423,7 +423,9 @@ void JavaWizardWidget::on_javaStatusBtn_clicked()
                         .arg(m_result.realPlatform, m_result.javaVersion.toString());
             break;
         case JavaStatus::Pending:
-            // TODO: abort here?
+            CustomMessageBox::selectable(this, QObject::tr("Java test pending"),
+                                         QObject::tr("The Java check is still in progress. Please wait."), QMessageBox::Information)
+                ->show();
             return;
     }
     CustomMessageBox::selectable(this, failed ? QObject::tr("Java test failure") : QObject::tr("Java test success"), text,

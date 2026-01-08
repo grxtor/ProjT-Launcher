@@ -131,6 +131,9 @@ void CustomPage::filterChanged()
 
 void CustomPage::loaderFilterChanged()
 {
+    // Minimum MC version for loaders that don't have per-version metadata
+    static const Version FABRIC_QUILT_MIN_VERSION("1.14");
+
     QString minecraftVersion;
     if (m_selectedVersion) {
         minecraftVersion = m_selectedVersion->descriptor();
@@ -152,17 +155,18 @@ void CustomPage::loaderFilterChanged()
         ui->loaderVersionList->setExactFilter(BaseVersionList::ParentVersionRole, minecraftVersion);
         m_selectedLoader = "net.minecraftforge";
     } else if (ui->fabricFilter->isChecked()) {
-        // FIXME: dirty hack because the launcher is unaware of Fabric's dependencies
-        if (Version(minecraftVersion) >= Version("1.14"))  // Fabric/Quilt supported
+        // Fabric loader is universal (works with all MC versions it supports)
+        // but only supports MC >= 1.14. Check version compatibility.
+        if (Version(minecraftVersion) >= FABRIC_QUILT_MIN_VERSION)
             ui->loaderVersionList->setExactFilter(BaseVersionList::ParentVersionRole, "");
-        else                                                                                   // Fabric/Quilt unsupported
+        else
             ui->loaderVersionList->setExactFilter(BaseVersionList::ParentVersionRole, "AAA");  // clear list
         m_selectedLoader = "net.fabricmc.fabric-loader";
     } else if (ui->quiltFilter->isChecked()) {
-        // FIXME: dirty hack because the launcher is unaware of Quilt's dependencies (same as Fabric)
-        if (Version(minecraftVersion) >= Version("1.14"))  // Fabric/Quilt supported
+        // Quilt has the same compatibility requirements as Fabric
+        if (Version(minecraftVersion) >= FABRIC_QUILT_MIN_VERSION)
             ui->loaderVersionList->setExactFilter(BaseVersionList::ParentVersionRole, "");
-        else                                                                                   // Fabric/Quilt unsupported
+        else
             ui->loaderVersionList->setExactFilter(BaseVersionList::ParentVersionRole, "AAA");  // clear list
         m_selectedLoader = "org.quiltmc.quilt-loader";
     } else if (ui->liteLoaderFilter->isChecked()) {
