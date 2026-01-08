@@ -240,8 +240,9 @@ bool Component::isRevertible()
 
 bool Component::isMoveable()
 {
-    // HACK, FIXME: this was too dumb and wouldn't follow dependency constraints anyway. For now hardcoded to 'true'.
-    return true;
+    // Important components (like Minecraft) should stay at their fixed position
+    // Non-important components can be reordered by the user
+    return !m_important;
 }
 
 bool Component::isVersionChangeable(bool wait)
