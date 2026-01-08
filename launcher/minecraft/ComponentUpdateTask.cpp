@@ -512,25 +512,41 @@ void ComponentUpdateTask::resolveDependencies(bool checkOnly)
             } else {
                 // version needs to be decided
                 qCDebug(instanceProfileResolveC) << "Adding" << add.uid << "at position" << add.indexOfFirstDependee;
-                // ############################################################################################################
-                // HACK HACK HACK HACK FIXME: this is a placeholder for deciding what version to use. For now, it is hardcoded.
+
                 if (!add.suggests.isEmpty()) {
+                    // Use suggested version if available
                     component->m_version = add.suggests;
                 } else {
-                    if (add.uid == "org.lwjgl") {
-                        component->m_version = "2.9.1";
-                    } else if (add.uid == "org.lwjgl3") {
-                        component->m_version = "3.1.2";
-                    } else if (add.uid == "net.fabricmc.intermediary" || add.uid == "org.quiltmc.hashed") {
-                        auto minecraft = std::find_if(components.begin(), components.end(),
-                                                      [](ComponentPtr& cmp) { return cmp->getID() == "net.minecraft"; });
-                        if (minecraft != components.end()) {
-                            component->m_version = (*minecraft)->getVersion();
+                    // Try to get recommended version from metadata
+                    auto versionList = APPLICATION->metadataIndex()->get(add.uid);
+                    if (versionList) {
+                        versionList->waitToLoad();
+                        auto recommended = versionList->getRecommended();
+                        if (recommended) {
+                            component->m_version = recommended->descriptor();
+                        }
+                    }
+
+                    // Fallback for specific components that need Minecraft version matching
+                    if (component->m_version.isEmpty()) {
+                        if (add.uid == "net.fabricmc.intermediary" || add.uid == "org.quiltmc.hashed") {
+                            auto minecraft = std::find_if(components.begin(), components.end(),
+                                                          [](ComponentPtr& cmp) { return cmp->getID() == "net.minecraft"; });
+                            if (minecraft != components.end()) {
+                                component->m_version = (*minecraft)->getVersion();
+                            }
+                        }
+                    }
+
+                    // Last resort: known defaults for LWJGL when metadata unavailable
+                    if (component->m_version.isEmpty()) {
+                        if (add.uid == "org.lwjgl") {
+                            component->m_version = "2.9.1";
+                        } else if (add.uid == "org.lwjgl3") {
+                            component->m_version = "3.1.2";
                         }
                     }
                 }
-                // HACK HACK HACK HACK FIXME: this is a placeholder for deciding what version to use. For now, it is hardcoded.
-                // ############################################################################################################
             }
             component->m_dependencyOnly = true;
             // FIXME: this should not work directly with the component list
