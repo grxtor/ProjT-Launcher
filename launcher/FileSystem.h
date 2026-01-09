@@ -160,7 +160,7 @@ class copy : public QObject {
    signals:
     void fileCopied(const QString& relativeName);
     void copyFailed(const QString& relativeName);
-    // TODO: maybe add a "shouldCopy" signal in the future?
+    // NOTE: A 'shouldCopy' signal could be added here in the future for granular control.
 
    private:
     bool operator()(const QString& offset, bool dryRun = false);
