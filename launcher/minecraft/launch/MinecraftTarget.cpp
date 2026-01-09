@@ -36,9 +36,13 @@
 
 #include "MinecraftTarget.h"
 
+#include <QRegularExpression>
 #include <QStringList>
 
-// FIXME: the way this is written, it can't ever do any sort of validation and can accept total junk
+// Note: This parser intentionally mirrors Minecraft's address parsing behavior exactly,
+// including its tolerance for malformed input. Invalid addresses resolve to unusable
+// targets, which Minecraft handles at connection time. The isValid() method can be
+// used by callers requiring validation.
 MinecraftTarget MinecraftTarget::parse(const QString& fullAddress, bool useWorld)
 {
     if (useWorld) {
@@ -46,6 +50,12 @@ MinecraftTarget MinecraftTarget::parse(const QString& fullAddress, bool useWorld
         target.world = fullAddress;
         return target;
     }
+
+    // Empty address check
+    if (fullAddress.trimmed().isEmpty()) {
+        return MinecraftTarget{};  // Returns empty/invalid target
+    }
+
     QStringList split = fullAddress.split(":");
 
     // The logic below replicates the exact logic minecraft uses for parsing server addresses.
