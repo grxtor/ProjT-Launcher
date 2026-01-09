@@ -60,6 +60,16 @@
 #include <QFileInfo>
 #include <QIcon>
 
+#include <functional>
+
+// Default provider uses Qt's standard lookup
+MMCIcon::ThemeIconProvider MMCIcon::s_themeProvider = [](const QString& key) { return QIcon::fromTheme(key); };
+
+void MMCIcon::setThemeIconProvider(ThemeIconProvider provider)
+{
+    s_themeProvider = provider;
+}
+
 IconType operator--(IconType& t, int)
 {
     IconType temp = t;
@@ -103,7 +113,11 @@ QIcon MMCIcon::icon() const
     auto& icon = m_images[m_current_type].icon;
     if (!icon.isNull())
         return icon;
-    // TODO: Theme ikonları için dependency injection uygulanabilir. Şu anda doğrudan erişim var, test edilebilirlik ve özelleştirme için DI önerilir.
+
+    // DI: Use the static provider
+    if (s_themeProvider) {
+        return s_themeProvider(m_images[m_current_type].key);
+    }
     return QIcon::fromTheme(m_images[m_current_type].key);
 }
 

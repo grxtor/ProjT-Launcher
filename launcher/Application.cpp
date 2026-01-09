@@ -473,14 +473,15 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
     m_dataPath = dataPath;
 
     /*
-     * Establish the mechanism for communication with an already running ProjTLauncher that uses the same data path.
+     * Establish the mechanism for communication with an already running ProjTLauncher that uses the same binary.
      * If there is one, tell it what the user actually wanted to do and exit.
      * We want to initialize this before logging to avoid messing with the log of a potential already running copy.
+     *
+     * Using binary path (applicationDirPath) instead of data path prevents update conflicts
+     * when multiple instances with different data directories share the same binary.
      */
-    auto appID = ApplicationId::fromPathAndVersion(QDir::currentPath(), BuildConfig.printableVersionString());
+    auto appID = ApplicationId::fromPathAndVersion(QCoreApplication::applicationDirPath(), BuildConfig.printableVersionString());
     {
-        // TODO: Multiple instances with different data dirs can run from same binary path
-        // This can cause update conflicts - consider using data path in ApplicationId
         m_peerInstance = new LocalPeer(this, appID);
         connect(m_peerInstance, &LocalPeer::messageReceived, this, &Application::messageReceived);
         if (m_peerInstance->isClient()) {

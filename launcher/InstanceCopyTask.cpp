@@ -24,6 +24,7 @@
 #include "FileSystem.h"
 #include "Filter.h"
 #include "NullInstance.h"
+#include "minecraft/MinecraftInstance.h"
 #include "settings/INISettingsObject.h"
 #include "tasks/Task.h"
 
@@ -48,7 +49,7 @@ InstanceCopyTask::InstanceCopyTask(InstancePtr origInstance, const InstanceCopyP
 
     if (!filters.isEmpty()) {
         // Set regex filter:
-        // TODO: Kopyalanan instance'ın tipini orijinal instance'dan almak gerekiyor. Şu anda sabit tip atanıyor.
+        // NOTE: Regex for filtering files during copy.
         QRegularExpression regexp(filters, QRegularExpression::CaseInsensitiveOption);
         m_matcher = Filters::regexp(regexp);
     }
@@ -178,7 +179,15 @@ void InstanceCopyTask::copyFinished()
         return;
     }
 
-    InstancePtr inst(new NullInstance(m_globalSettings, instanceSettings, m_stagingPath));
+    instanceSettings->registerSetting("InstanceType", "");
+    QString inst_type = instanceSettings->get("InstanceType").toString();
+
+    InstancePtr inst;
+    if (inst_type == "OneSix" || inst_type.isEmpty()) {
+        inst.reset(new MinecraftInstance(m_globalSettings, instanceSettings, m_stagingPath));
+    } else {
+        inst.reset(new NullInstance(m_globalSettings, instanceSettings, m_stagingPath));
+    }
     inst->setName(name());
     inst->setIconKey(m_instIcon);
     if (!m_keepPlaytime) {

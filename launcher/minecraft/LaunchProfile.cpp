@@ -270,8 +270,29 @@ void LaunchProfile::applyProblemSeverity(ProblemSeverity severity)
 
 const QList<PatchProblem> LaunchProfile::getProblems() const
 {
-    // FIXME: implement something that actually makes sense here
-    return {};
+    QList<PatchProblem> problems;
+
+    // Validate Minecraft version is set
+    if (m_minecraftVersion.isEmpty()) {
+        problems.append({ ProblemSeverity::Error, QObject::tr("Minecraft version is not set") });
+    }
+
+    // Validate main class is set
+    if (m_mainClass.isEmpty() && m_appletClass.isEmpty()) {
+        problems.append({ ProblemSeverity::Error, QObject::tr("Main class is not set") });
+    }
+
+    // Validate main jar exists
+    if (!m_mainJar) {
+        problems.append({ ProblemSeverity::Error, QObject::tr("Main JAR is not defined") });
+    }
+
+    // Check for empty library list (suspicious but not fatal)
+    if (m_libraries.isEmpty()) {
+        problems.append({ ProblemSeverity::Warning, QObject::tr("No libraries defined in launch profile") });
+    }
+
+    return problems;
 }
 
 QString LaunchProfile::getMinecraftVersion() const

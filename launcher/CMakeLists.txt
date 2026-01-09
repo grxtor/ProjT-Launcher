@@ -836,8 +836,10 @@ SET(LAUNCHER_SOURCES
     ui/InstanceWindow.cpp
     ui/ViewLogWindow.h
     ui/ViewLogWindow.cpp
+    ui/LaunchMenu.cpp
+    ui/LaunchMenu.h
 
-    # FIXME: maybe find a better home for this.
+    # File filtering utilities - used by various instance operations (copy, export, etc.)
     FileIgnoreProxy.cpp
     FileIgnoreProxy.h
     FastFileIconProvider.cpp

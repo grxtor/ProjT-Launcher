@@ -66,6 +66,17 @@ class VersionProxyModel : public QAbstractProxyModel {
     void sourceRowsAboutToBeRemoved(const QModelIndex& parent, int first, int last);
     void sourceRowsRemoved(const QModelIndex& parent, int first, int last);
 
+    void sourceRowsAboutToBeMoved(const QModelIndex& sourceParent,
+                                  int sourceStart,
+                                  int sourceEnd,
+                                  const QModelIndex& destinationParent,
+                                  int destinationRow);
+    void sourceRowsMoved(const QModelIndex& sourceParent,
+                         int sourceStart,
+                         int sourceEnd,
+                         const QModelIndex& destinationParent,
+                         int destinationRow);
+
    private:
     QList<Column> m_columns;
     FilterMap m_filters;

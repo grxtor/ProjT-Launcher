@@ -318,50 +318,6 @@ QSet<QString> MinecraftInstance::traits() const
     return profile->getTraits();
 }
 
-// TODO: move UI code out of MinecraftInstance
-void MinecraftInstance::populateLaunchMenu(QMenu* menu)
-{
-    QAction* normalLaunch = menu->addAction(tr("&Launch"));
-    normalLaunch->setShortcut(QKeySequence::Open);
-    QAction* normalLaunchOffline = menu->addAction(tr("Launch &Offline"));
-    normalLaunchOffline->setShortcut(QKeySequence(tr("Ctrl+Shift+O")));
-    QAction* normalLaunchDemo = menu->addAction(tr("Launch &Demo"));
-    normalLaunchDemo->setShortcut(QKeySequence(tr("Ctrl+Alt+O")));
-
-    normalLaunchDemo->setEnabled(supportsDemo());
-
-    connect(normalLaunch, &QAction::triggered, [this] { APPLICATION->launch(shared_from_this()); });
-    connect(normalLaunchOffline, &QAction::triggered, [this] { APPLICATION->launch(shared_from_this(), false, false); });
-    connect(normalLaunchDemo, &QAction::triggered, [this] { APPLICATION->launch(shared_from_this(), false, true); });
-
-    QString profilersTitle = tr("Profilers");
-    menu->addSeparator()->setText(profilersTitle);
-
-    auto profilers = new QActionGroup(menu);
-    profilers->setExclusive(true);
-    connect(profilers, &QActionGroup::triggered, [this](QAction* action) {
-        settings()->set("Profiler", action->data());
-        emit profilerChanged();
-    });
-
-    QAction* noProfilerAction = menu->addAction(tr("&No Profiler"));
-    noProfilerAction->setData("");
-    noProfilerAction->setCheckable(true);
-    noProfilerAction->setChecked(true);
-    profilers->addAction(noProfilerAction);
-
-    for (auto profiler = APPLICATION->profilers().begin(); profiler != APPLICATION->profilers().end(); profiler++) {
-        QAction* profilerAction = menu->addAction(profiler.value()->name());
-        profilers->addAction(profilerAction);
-        profilerAction->setData(profiler.key());
-        profilerAction->setCheckable(true);
-        profilerAction->setChecked(settings()->get("Profiler").toString() == profiler.key());
-
-        QString error;
-        profilerAction->setEnabled(profiler.value()->check(&error));
-    }
-}
-
 QString MinecraftInstance::gameRoot() const
 {
     QFileInfo mcDir(FS::PathCombine(instanceRoot(), "minecraft"));
@@ -394,7 +350,8 @@ bool MinecraftInstance::supportsDemo() const
 {
     Version instance_ver{ getPackProfile()->getComponentVersion("net.minecraft") };
     // Demo mode was introduced in 1.3.1: https://minecraft.wiki/w/Demo_mode#History
-    // Note: This check may not work correctly for non-release versions due to version string formatting. Demo support is based on release versions.
+    // Note: This check may not work correctly for non-release versions due to version string formatting. Demo support is based on release
+    // versions.
     return instance_ver >= Version("1.3.1");
 }
 

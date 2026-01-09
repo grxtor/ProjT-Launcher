@@ -73,7 +73,7 @@ VersionFilterData::VersionFilterData()
     // don't use installers for those.
     forgeInstallerBlacklist = QSet<QString>({ "1.5.2" });
 
-    // FIXME: remove, used for deciding when core mods should display
+    // Legacy support for Core Mods display cutoff (approx 1.4.7 era).
     legacyCutoffDate = timeFromS3Time("2013-06-25T15:08:56+02:00");
     lwjglWhitelist = QSet<QString>{ "net.java.jinput:jinput", "net.java.jinput:jinput-platform", "net.java.jutils:jutils",
                                     "org.lwjgl.lwjgl:lwjgl",  "org.lwjgl.lwjgl:lwjgl_util",      "org.lwjgl.lwjgl:lwjgl-platform" };

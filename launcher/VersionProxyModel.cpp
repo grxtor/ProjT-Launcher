@@ -106,10 +106,10 @@ VersionProxyModel::VersionProxyModel(QObject* parent) : QAbstractProxyModel(pare
     connect(filterModel, &QAbstractItemModel::rowsInserted, this, &VersionProxyModel::sourceRowsInserted);
     connect(filterModel, &QAbstractItemModel::rowsAboutToBeRemoved, this, &VersionProxyModel::sourceRowsAboutToBeRemoved);
     connect(filterModel, &QAbstractItemModel::rowsRemoved, this, &VersionProxyModel::sourceRowsRemoved);
-    // FIXME: implement when needed
+
+    connect(filterModel, &QAbstractItemModel::rowsAboutToBeMoved, this, &VersionProxyModel::sourceRowsAboutToBeMoved);
+    connect(filterModel, &QAbstractItemModel::rowsMoved, this, &VersionProxyModel::sourceRowsMoved);
     /*
-    connect(replacing, &QAbstractItemModel::rowsAboutToBeMoved, this, &VersionProxyModel::sourceRowsAboutToBeMoved);
-    connect(replacing, &QAbstractItemModel::rowsMoved, this, &VersionProxyModel::sourceRowsMoved);
     connect(replacing, &QAbstractItemModel::layoutAboutToBeChanged, this, &VersionProxyModel::sourceLayoutAboutToBeChanged);
     connect(replacing, &QAbstractItemModel::layoutChanged, this, &VersionProxyModel::sourceLayoutChanged);
     */
@@ -454,6 +454,24 @@ void VersionProxyModel::sourceRowsAboutToBeRemoved(const QModelIndex& parent, in
 void VersionProxyModel::sourceRowsRemoved([[maybe_unused]] const QModelIndex& parent, [[maybe_unused]] int first, [[maybe_unused]] int last)
 {
     endRemoveRows();
+}
+
+void VersionProxyModel::sourceRowsAboutToBeMoved(const QModelIndex& sourceParent,
+                                                 int sourceStart,
+                                                 int sourceEnd,
+                                                 const QModelIndex& destinationParent,
+                                                 int destinationRow)
+{
+    beginMoveRows(sourceParent, sourceStart, sourceEnd, destinationParent, destinationRow);
+}
+
+void VersionProxyModel::sourceRowsMoved(const QModelIndex& sourceParent,
+                                        int sourceStart,
+                                        int sourceEnd,
+                                        const QModelIndex& destinationParent,
+                                        int destinationRow)
+{
+    endMoveRows();
 }
 
 void VersionProxyModel::setCurrentVersion(const QString& version)
